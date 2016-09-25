@@ -30,6 +30,8 @@ def get_args():
                         default='sqlite')
     parser.add_argument('-d', '--debug', type=str.lower, help='Debug Level [info|debug]', default=None)
 
+    parser.add_argument('--config', type=str, help='', default='')
+
     return parser.parse_args()
 
 

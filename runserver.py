@@ -18,9 +18,9 @@ from pogom.utils import get_args, get_encryption_lib_path
 log = logging.getLogger(__name__)
 
 
-def read_config(scan_config):
+def read_config(scan_config, config_user):
     config_path = os.path.join(
-        os.path.dirname(os.path.realpath(sys.argv[0])), "config.json")
+        os.path.dirname(os.path.realpath(sys.argv[0])), "config.{}.json".format(config_user))
 
     if os.path.isfile(config_path):
         config['CONFIG_PATH'] = config_path
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     create_tables()
     scan_config = ScanConfig()
-    read_config(scan_config)
+    read_config(scan_config, args.config)
     config['SIGNATURE_LIB_PATH'] = get_encryption_lib_path()
 
     scanner = Scanner(scan_config)
