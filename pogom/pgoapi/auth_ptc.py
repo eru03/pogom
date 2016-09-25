@@ -33,6 +33,7 @@ import json
 import logging
 import requests
 
+from pogom.utils import get_args
 from urllib.parse import parse_qs
 
 from .auth import Auth
@@ -41,8 +42,13 @@ from .exceptions import AuthException
 
 
 class AuthPtc(Auth):
-    PTC_LOGIN_URL = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
-    PTC_LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
+
+    args = get_args()
+    if args.ssoport <= 0:
+        args.ssoport = 443
+
+    PTC_LOGIN_URL = 'https://sso.pokemon.com:{}/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'.format(args.ssoport)
+    PTC_LOGIN_OAUTH = 'https://sso.pokemon.com:{}/sso/oauth2.0/accessToken'.format(args.ssoport)
     PTC_LOGIN_CLIENT_SECRET = 'w8ScCUXJQc6kXKw8FiOhd8Fixzht18Dq3PEVkUCP5ZPxtgyWsbTvWHFLm2wNY0JR'
 
     def __init__(self, username, password):

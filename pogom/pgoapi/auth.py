@@ -26,6 +26,7 @@ Author: tjado <https://github.com/tejado>
 # from __future__ import absolute_import
 
 import logging
+from pogom.utils import get_args
 from .utilities import get_time, get_format_time_diff
 
 
@@ -55,7 +56,11 @@ class Auth:
         self._ticket_expire = None
         self._ticket_start = None
         self._ticket_end = None
-        self._api_endpoint = 'https://pgorelease.nianticlabs.com/plfe/rpc'
+
+        args = get_args()
+        if args.connectport <= 0:
+            args.connectport = 443
+        self._api_endpoint = 'https://pgorelease.nianticlabs.com:{}/plfe/rpc'.format(args.connectport)
         
         # if > 1 you're probably banned
         self.code_three_counter = 0

@@ -31,6 +31,7 @@ import logging
 import requests
 import time
 import math
+from pogom.utils import get_args
 from threading import Thread
 from Queue import Queue, PriorityQueue
 
@@ -54,7 +55,11 @@ class PGoApi:
         self._work_queue = Queue()
         self._auth_queue = PriorityQueue()
         self._workers = []
-        self._api_endpoint = 'https://pgorelease.nianticlabs.com/plfe/rpc'
+
+        args = get_args()
+        if args.connectport <= 0:
+            args.connectport = 443
+        self._api_endpoint = 'https://pgorelease.nianticlabs.com:{}/plfe/rpc'.format(args.connectport)
 
         self.log.info('%s v%s - %s', __title__, __version__, __copyright__)
 
@@ -258,7 +263,12 @@ class PGoApiWorker(Thread):
             except (NotLoggedInException, AuthTokenExpiredException):
                 pass  # Trying again will trigger login in _login_if_necessary
             except ServerApiEndpointRedirectException as e:
-                auth_provider.set_api_endpoint('https://{}/rpc'.format(e.get_redirected_endpoint()))
+                args = get_args()
+                if args.connectport <= 0:
+                    args.connectport = 443
+                endpoint = 'https://{}/rpc'.format(e.get_redirected_endpoint())
+                endpoint = endpoint.replace("pgorelease.nianticlabs.com", "pgorelease.nianticlabs.com:{}".format(args.connectport))
+                auth_provider.set_api_endpoint(endpoint)
             except Exception as e:  # Never crash the worker
                 if isinstance(e, ServerBusyOrOfflineException):
                     self.log.info('Server seems to be busy or offline: {}'.format(e))
@@ -269,7 +279,12 @@ class PGoApiWorker(Thread):
                 retries -= 1
             else:
                 if 'api_url' in response:
-                    auth_provider.set_api_endpoint('https://{}/rpc'.format(response['api_url']))
+                    args = get_args()
+                    if args.connectport <= 0:
+                        args.connectport = 443
+                    endpoint = 'https://{}/rpc'.format(response['api_url'])
+                    endpoint = endpoint.replace("pgorelease.nianticlabs.com", "pgorelease.nianticlabs.com:{}".format(args.connectport))
+                    auth_provider.set_api_endpoint(endpoint)
 
                 if 'status_code' in response and response['status_code'] == 3:
                     self.log.info("Status code 3 returned. Performing get_player request.")
