@@ -24,9 +24,32 @@ else:
         ('cache_size', 10000),
         ('mmap_size', 1024 * 1024 * 32),
     ))
+    
+if args.db2 != 'sqlite':
+    db2 = connect(args.db2)
+else:
+    db2 = SqliteDatabase('pogom2.db', pragmas=(
+        ('journal_mode', 'WAL'),
+        ('cache_size', 10000),
+        ('mmap_size', 1024 * 1024 * 32),
+    ))
 
 log = logging.getLogger(__name__)
 lock = threading.Lock()
+
+class BaseModel2(Model):
+    class Meta:
+        database = db2
+
+    @classmethod
+    def get_all(cls):
+        return [m for m in cls.select().dicts()]
+
+class User(BaseModel2):
+
+    id = CharField(primary_key=True)
+    pseudonym = CharField()
+    last_alive = DateTimeField(null=True)
 
 
 class BaseModel(Model):
@@ -217,6 +240,14 @@ def parse_map(map_dict):
         if gyms:
             log.info("Upserting {} gyms".format(len(gyms)))
             bulk_upsert(Gym, gyms)
+    
+    
+    user = User.select().where(User.pseudonym == args.user).get()
+    user.last_alive = datetime.utcnow()
+    user.save()
+    #InsertQuery(cls, rows=data.values()[i:min(i + step, num_rows)]).upsert().execute()
+    #bulk_upsert(User, user)
+
 
 
 def bulk_upsert(cls, data):
@@ -228,6 +259,7 @@ def bulk_upsert(cls, data):
         log.debug("Inserting items {} to {}".format(i, min(i + step, num_rows)))
         InsertQuery(cls, rows=data.values()[i:min(i + step, num_rows)]).upsert().execute()
         i += step
+
 
 
 def create_tables():

@@ -28,7 +28,11 @@ def get_args():
     parser.add_argument('-P', '--port', type=int, help='Set web server listening port', default=5000)
     parser.add_argument('--db', help='Connection String to be used. (default: sqlite)',
                         default='sqlite')
+    parser.add_argument('--db2', help='Connection String to be used. (default: sqlite)',
+                        default='sqlite')
     parser.add_argument('-d', '--debug', type=str.lower, help='Debug Level [info|debug]', default=None)
+
+    parser.add_argument('--user', type=str, help='', default=None)
 
     parser.add_argument('--connectport', type=int, help='', default=None)
     parser.add_argument('--ssoport', type=int, help='', default=None)
